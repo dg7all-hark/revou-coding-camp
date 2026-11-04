@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Cat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ── scene & 3D setup ── */
+    .scene {
+      perspective: 600px;
+    }
+    .cat {
+      transform-style: preserve-3d;
+      transition: transform 0.1s linear;
+    }
+
+    /* ── body ── */
+    .cat-body {
+      width: 120px;
+      height: 90px;
+      background: #f97316;
+      border-radius: 50% 50% 40% 40%;
+      position: relative;
+      box-shadow: inset -10px -8px 0 #ea580c, 4px 6px 12px rgba(0,0,0,.35);
+    }
+
+    /* ── head ── */
+    .cat-head {
+      width: 100px;
+      height: 90px;
+      background: #f97316;
+      border-radius: 50% 50% 45% 45%;
+      position: absolute;
+      top: -70px;
+      left: 10px;
+      box-shadow: inset -8px -6px 0 #ea580c, 2px 4px 10px rgba(0,0,0,.3);
+    }
+
+    /* ── ears ── */
+    .ear {
+      position: absolute;
+      width: 0;
+      height: 0;
+      top: -22px;
+    }
+    .ear-left {
+      left: 10px;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 30px solid #f97316;
+      filter: drop-shadow(-2px -2px 2px #ea580c);
+    }
+    .ear-right {
+      right: 10px;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 30px solid #f97316;
+      filter: drop-shadow(2px -2px 2px #ea580c);
+    }
+    /* inner ear */
+    .ear-left::after, .ear-right::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: -10px;
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 18px solid #fda4a4;
+    }
+
+    /* ── eyes ── */
+    .eye {
+      position: absolute;
+      width: 18px;
+      height: 20px;
+      background: #1e293b;
+      border-radius: 50%;
+      top: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 6px rgba(0,0,0,.5);
+    }
+    .eye::after {           /* pupil shine */
+      content: '';
+      width: 5px; height: 5px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px; left: 4px;
+    }
+    .eye-left  { left: 18px; }
+    .eye-right { right: 18px; }
+
+    /* blink animation */
+    @keyframes blink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      96%            { transform: scaleY(0.08); }
+    }
+    .eye { animation: blink 4s infinite; }
+
+    /* ── nose ── */
+    .nose {
+      position: absolute;
+      width: 0; height: 0;
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 7px solid #e879f9;
+    }
+
+    /* ── mouth ── */
+    .mouth {
+      position: absolute;
+      top: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 12px;
+      border-bottom: 2.5px solid #7c3aed;
+      border-left: 2.5px solid #7c3aed;
+      border-right: 2.5px solid #7c3aed;
+      border-radius: 0 0 14px 14px;
+    }
+
+    /* ── whiskers ── */
+    .whiskers {
+      position: absolute;
+      top: 50px;
+      width: 100%;
+    }
+    .whisker {
+      position: absolute;
+      height: 1.5px;
+      background: #7c3aed;
+      border-radius: 1px;
+    }
+    .w1 { width: 32px; top:  0; left:  0; transform: rotate(-8deg); }
+    .w2 { width: 32px; top:  8px; left: 0; transform: rotate( 4deg); }
+    .w3 { width: 32px; top:  0; right: 0; transform: rotate( 8deg); }
+    .w4 { width: 32px; top:  8px; right: 0; transform: rotate(-4deg); }
+
+    /* ── tail ── */
+    .tail {
+      position: absolute;
+      bottom: -20px;
+      right: -30px;
+      width: 70px;
+      height: 18px;
+      background: #f97316;
+      border-radius: 0 50px 50px 0;
+      transform-origin: left center;
+      animation: wag 1.6s ease-in-out infinite;
+      box-shadow: inset 0 -4px 0 #ea580c;
+    }
+    @keyframes wag {
+      0%,100% { transform: rotate(-15deg); }
+      50%      { transform: rotate(15deg); }
+    }
+
+    /* ── legs / paws ── */
+    .paw {
+      position: absolute;
+      bottom: -16px;
+      width: 28px;
+      height: 22px;
+      background: #f97316;
+      border-radius: 40% 40% 50% 50%;
+      box-shadow: inset -4px -4px 0 #ea580c;
+    }
+    .paw-l { left: 14px; }
+    .paw-r { right: 14px; }
+
+    /* ── stripes on body ── */
+    .stripe {
+      position: absolute;
+      width: 3px;
+      background: #ea580c;
+      border-radius: 2px;
+      opacity: .6;
+    }
+    .s1 { height: 40px; top: 10px; left: 38px;  transform: rotate(5deg); }
+    .s2 { height: 40px; top: 10px; left: 56px; }
+    .s3 { height: 40px; top: 10px; left: 74px;  transform: rotate(-5deg); }
+
+    /* ── floating bounce ── */
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    .cat-wrapper { animation: float 3s ease-in-out infinite; }
+
+    /* ── shadow ── */
+    .shadow-blob {
+      width: 120px; height: 18px;
+      background: rgba(0,0,0,.25);
+      border-radius: 50%;
+      animation: shadow-pulse 3s ease-in-out infinite;
+      margin: 0 auto;
+    }
+    @keyframes shadow-pulse {
+      0%,100% { transform: scaleX(1);   opacity: .25; }
+      50%      { transform: scaleX(.7); opacity: .12; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-violet-950 via-indigo-900 to-sky-900 flex flex-col items-center justify-center gap-6 select-none">
+
+  <!-- title -->
+  <h1 class="text-white text-4xl font-bold tracking-widest drop-shadow-lg">🐱 3D Cat</h1>
+  <p class="text-indigo-300 text-sm -mt-4">Move your mouse to rotate · Click to meow</p>
+
+  <!-- scene -->
+  <div class="scene flex items-end justify-center" style="height:260px; width:260px;">
+    <div id="cat" class="cat relative cat-wrapper" style="margin-bottom:24px;">
+
+      <!-- body -->
+      <div class="cat-body relative">
+        <div class="stripe s1"></div>
+        <div class="stripe s2"></div>
+        <div class="stripe s3"></div>
+        <div class="paw paw-l"></div>
+        <div class="paw paw-r"></div>
+        <div class="tail"></div>
+
+        <!-- head -->
+        <div class="cat-head">
+          <div class="ear ear-left"></div>
+          <div class="ear ear-right"></div>
+          <div class="eye eye-left"></div>
+          <div class="eye eye-right"></div>
+          <div class="nose"></div>
+          <div class="mouth"></div>
+          <div class="whiskers">
+            <div class="whisker w1"></div>
+            <div class="whisker w2"></div>
+            <div class="whisker w3"></div>
+            <div class="whisker w4"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- floor shadow -->
+  <div class="shadow-blob -mt-4"></div>
+
+  <!-- meow bubble -->
+  <div id="meow"
+       class="hidden bg-white text-violet-700 font-bold text-xl px-6 py-2 rounded-full shadow-xl
+              transition-all duration-300 pointer-events-none">
+    Meow! 🐾
+  </div>
+
+  <!-- controls info -->
+  <div class="flex gap-4 mt-2">
+    <button id="btnColor"
+            class="bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full
+                   border border-white/20 transition cursor-pointer">
+      🎨 Change Color
+    </button>
+    <button id="btnWiggle"
+            class="bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-full
+                   border border-white/20 transition cursor-pointer">
+      💃 Wiggle
+    </button>
+  </div>
+
+  <script>
+    const cat      = document.getElementById('cat');
+    const meowBubble = document.getElementById('meow');
+
+    /* ── 3D rotation on mouse move ── */
+    document.addEventListener('mousemove', (e) => {
+      const cx = window.innerWidth  / 2;
+      const cy = window.innerHeight / 2;
+      const rx = ((e.clientY - cy) / cy) * -25;   // tilt up/down
+      const ry = ((e.clientX - cx) / cx) *  30;   // rotate left/right
+      cat.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+
+    /* ── reset on mouse leave ── */
+    document.addEventListener('mouseleave', () => {
+      cat.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    });
+
+    /* ── meow on click ── */
+    let meowTimeout;
+    document.getElementById('cat').addEventListener('click', () => {
+      meowBubble.classList.remove('hidden');
+      clearTimeout(meowTimeout);
+      meowTimeout = setTimeout(() => meowBubble.classList.add('hidden'), 1200);
+    });
+
+    /* ── color change ── */
+    const colors = [
+      { body: '#f97316', shadow: '#ea580c' },  // orange
+      { body: '#a3a3a3', shadow: '#737373' },  // gray
+      { body: '#fbbf24', shadow: '#d97706' },  // yellow
+      { body: '#6366f1', shadow: '#4338ca' },  // purple
+      { body: '#f472b6', shadow: '#db2777' },  // pink
+      { body: '#34d399', shadow: '#059669' },  // green
+    ];
+    let colorIdx = 0;
+
+    document.getElementById('btnColor').addEventListener('click', () => {
+      colorIdx = (colorIdx + 1) % colors.length;
+      const { body, shadow } = colors[colorIdx];
+
+      document.querySelectorAll(
+        '.cat-body,.cat-head,.ear-left,.ear-right,.paw,.tail,.stripe'
+      ).forEach(el => {
+        el.style.background  = body;
+      });
+
+      document.querySelectorAll('.ear-left,.ear-right').forEach(el => {
+        el.style.background   = 'transparent';
+        el.style.borderBottom = `30px solid ${body}`;
+      });
+
+      document.querySelectorAll('.paw,.tail,.stripe').forEach(el => {
+        el.style.background = body;
+      });
+      document.querySelectorAll('.cat-body,.cat-head').forEach(el => {
+        el.style.background  = body;
+        el.style.boxShadow   = `inset -10px -8px 0 ${shadow}, 4px 6px 12px rgba(0,0,0,.35)`;
+      });
+    });
+
+    /* ── wiggle animation ── */
+    document.getElementById('btnWiggle').addEventListener('click', () => {
+      cat.style.animation = 'none';
+      cat.style.transition = 'transform 0.05s';
+
+      const frames = [
+        'rotateZ(-12deg) rotateY(-8deg)',
+        'rotateZ( 12deg) rotateY( 8deg)',
+        'rotateZ(-10deg) rotateY(-6deg)',
+        'rotateZ( 10deg) rotateY( 6deg)',
+        'rotateZ(-6deg)',
+        'rotateZ(  6deg)',
+        'rotateZ(0deg)',
+      ];
+      let i = 0;
+      const play = setInterval(() => {
+        cat.style.transform = frames[i++];
+        if (i >= frames.length) {
+          clearInterval(play);
+          cat.style.animation = '';
+          cat.style.transform = '';
+        }
+      }, 80);
+    });
+  </script>
+</body>
+</html>
